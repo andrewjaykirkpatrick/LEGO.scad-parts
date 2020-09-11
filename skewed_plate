@@ -5,8 +5,7 @@ use <Lego.scad>;
  */
 
 /* This OpenSCAD script produces a two plate thick brick used for straight brick train track placed at an angle.  
-* Proper tiling of multiple bricks may be difficult. For a 22.5 degree angle, using triangle sides of 4-12-13 works well. 
-* Pythagorean Triples work well where base_stud_length is the hypotenuse 
+* Proper tiling of multiple bricks may be difficult.
 */
 
 module skewed_plate( angle=22.5, base_stud_length=13, base_stud_width=8, skew_stud_length=34, skew_stud_width=34 ) {
