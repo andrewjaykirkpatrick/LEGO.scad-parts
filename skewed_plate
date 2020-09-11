@@ -1,0 +1,87 @@
+use <Lego.scad>;
+
+/* lego.scad, the OpenSCAD LEGO-compatible brick generator, can be found at: https://github.com/cfinke/LEGO.scad/ 
+ * LEGO®, the LEGO® logo, the Brick, DUPLO®, and MINDSTORMS® are trademarks of the LEGO® Group. ©2012 The LEGO® Group.
+ */
+
+/* This OpenSCAD script produces a two plate thick brick used for straight brick train track placed at an angle.  
+* Proper tiling of multiple bricks may be difficult. For a 22.5 degree angle, using triangle sides of 4-12-13 works well. 
+* Pythagorean Triples work well where base_stud_length is the hypotenuse 
+*/
+
+module skewed_plate( angle=22.5, base_stud_length=13, base_stud_width=8, skew_stud_length=34, skew_stud_width=34 ) {
+    // Values from Lego.scad.
+    lego_brick_height = 9.6; // Height of the non-stud portion of a regular brick.
+    stud_spacing=8; // Distance between centers of studs.
+    stud_diameter=4.85; // Diameters of studs.
+    wall_play=0.1; // Amount of space removed from the outer edge of bricks so that they will fit next to each other.
+
+    base_height = lego_brick_height/3;
+    base_width = (base_stud_width * stud_spacing) - (wall_play * 2);
+    base_length = (base_stud_length * stud_spacing) - (wall_play * 2);
+
+    skew_height = lego_brick_height/3;
+    skew_width = (skew_stud_width * stud_spacing) - (wall_play * 2);
+    skew_length = (skew_stud_length * stud_spacing) - (wall_play * 2);
+
+    if (base_stud_length > base_stud_width) {
+        // Lego.scad always makes the longest number the length. Rotate it manually if we want it wider than long.
+        rotate([0, 0, 0])
+            block(
+                height=.33333333333,
+                type="brick",
+                length=base_stud_length,
+                width=base_stud_width
+            ); 
+    }
+    else {
+        block(
+            height=.3333333333,
+            type="brick",
+            length=base_stud_length,
+            width=base_stud_width
+        );
+    }
+    
+    if (angle <= 90 ) {
+
+                // Fill in the underside of the straight base portion. type=baseplate would do this, but it would also make it thinner and give it rounded edges.
+                translate( [0, 0, skew_height/2] ) cube( [base_length, base_width, skew_height], true );
+
+    }
+    
+    intersection() {
+        translate( [base_width/2 + (base_width*sin(angle))+wall_play, 0, 0] )  // Something wrong with the Y length 
+            rotate([0, 0, -angle])
+            translate([-base_width/2, 0, -base_height])  // Something wrong with the Y length
+            union() {
+                if (skew_stud_length > skew_stud_width) {
+                    // Lego.scad always makes the longest number the length. Rotate it manually if we want it wider than long.
+                    rotate([0, 0, 90])
+                        block(
+                            height=.33333333333,
+                            type="brick",
+                            length=skew_stud_length,
+                            width=skew_stud_width,
+                            stud_type="solid"
+                        );
+                }
+                else {
+                    block(
+                        height=.33333333333,
+                        type="brick",
+                        length=skew_stud_length,
+                        width=skew_stud_width,
+                        stud_type="solid"
+                    );
+                }                
+        }
+
+        // SKEWED--Remove from the base brick everything outside and below the bottom of the angle brick.
+        translate([ 0, 0, base_height + skew_width/2]) {
+           rotate([0, 0, 90]) cube( [ base_width - 0.01, min(base_length, skew_length) - 0.01, skew_width*4 ], true);
+        }
+    }
+}
+
+skewed_plate();
